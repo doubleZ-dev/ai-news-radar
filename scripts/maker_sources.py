@@ -175,6 +175,61 @@ def parse_rss_source(
     return records
 
 
+def parse_youtube_source(
+    xml: str | bytes, config: Mapping[str, Any], now: datetime
+) -> list[dict[str, Any]]:
+    """Parse YouTube's public channel Atom feed using upload time, not edit time."""
+    feed = feedparser.parse(xml)
+    if not feed.entries:
+        raise ValueError(f"{config['name']} returned no feed entries")
+    cutoff = now - timedelta(hours=int(config.get("window_hours", 168)))
+    allowed_hosts = config.get("allowed_hosts") or []
+    default_tags = [str(tag) for tag in config.get("default_tags", []) if str(tag)]
+    max_items = max(1, int(config.get("max_items", 5)))
+    records = []
+    seen = set()
+    for entry in feed.entries[:30]:
+        title = clean_text(entry.get("title"), 240)
+        url = safe_public_url(entry.get("link"), allowed_hosts)
+        published = source_timestamp(entry.get("published"))
+        if not title or not url or url in seen or published is None or not cutoff <= published <= now:
+            continue
+        seen.add(url)
+        summary = clean_text(entry.get("summary") or entry.get("media_description"))
+        statistics = entry.get("media_statistics") or {}
+        rating = entry.get("media_starrating") or {}
+        try:
+            views = max(0, int(statistics.get("views")))
+        except (AttributeError, TypeError, ValueError):
+            views = None
+        try:
+            ratings = max(0, int(rating.get("count")))
+        except (AttributeError, TypeError, ValueError):
+            ratings = None
+        heat, evidence = heat_from_count(
+            "YouTube views", views, (1_000, 10_000, 50_000, 200_000, 1_000_000)
+        )
+        records.append(
+            make_record(
+                source_id=str(config["id"]),
+                source_name=str(config["name"]),
+                category=str(config["category"]),
+                title=title,
+                url=url,
+                summary=summary,
+                published_at=published,
+                observed_at=now,
+                tags=[*default_tags, *maker_tags(title, summary)],
+                metrics={"views": views, "ratings": ratings},
+                heat_score=heat,
+                heat_evidence=evidence,
+            )
+        )
+        if len(records) >= max_items:
+            break
+    return records
+
+
 def parse_github_source(html: str, config: Mapping[str, Any], now: datetime) -> list[dict[str, Any]]:
     records = []
     for project in parse_github_trending(html, now):

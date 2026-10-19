@@ -75,9 +75,15 @@ local generated artifacts and are ignored by Git by default.
 
 ## Next milestone
 
-Add stable adapters for MakerWorld, Printables, YouTube, Bilibili, Reddit,
-arXiv, Kickstarter, and Crowd Supply. Prefer public feeds and APIs, preserve
-per-source failure reporting, and avoid requiring a model API key in GitHub.
+YouTube channel Atom, Reddit, arXiv Robotics RSS, and Hackster Atom are now
+integrated and live-validated. Stable maker/vendor feeds also cover Make,
+Prusa, Bambu Lab, CNX Software, and Seeed Studio.
+
+The remaining source work is MakerWorld, Printables, Bilibili, Kickstarter,
+Crowd Supply, Instructables, Thingiverse, TikTok, WeChat, Douyin, and
+Xiaohongshu. Prefer public feeds and APIs, preserve per-source failure
+reporting, and avoid requiring a model API key in GitHub. Credentialed social
+platforms stay optional until a private authorization path is configured.
 
 Social sources follow the same rule: public curated snapshots may be enabled
 after repeated validation, while account-bound or credentialed platforms stay

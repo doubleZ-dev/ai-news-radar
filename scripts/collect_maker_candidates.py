@@ -25,6 +25,7 @@ from scripts.maker_sources import (
     parse_huggingface_daily,
     parse_producthunt_source,
     parse_rss_source,
+    parse_youtube_source,
 )
 
 
@@ -39,18 +40,30 @@ def collect_source(
     source_type = config["type"]
     if source_type in {
         "rss",
+        "youtube_rss",
         "github_trending",
         "producthunt",
         "huggingface_daily",
         "follow_builders_x",
     }:
         response = session.get(str(config["url"]), timeout=30)
+        # YouTube channel feeds occasionally return a transient 404 even for a
+        # valid channel. Retry only this known public-feed case; a persistent
+        # error still remains visible in source status.
+        if source_type == "youtube_rss":
+            for retry_index in range(2):
+                if getattr(response, "status_code", None) != 404:
+                    break
+                time.sleep(0.8 * (retry_index + 1))
+                response = session.get(str(config["url"]), timeout=30)
         response.raise_for_status()
         if source_type == "rss":
             # Let feedparser inspect the feed's own XML/HTTP encoding metadata.
             # requests.text may otherwise assume ISO-8859-1 and corrupt UTF-8
             # punctuation before the parser sees it.
             return parse_rss_source(response.content, config, now)
+        if source_type == "youtube_rss":
+            return parse_youtube_source(response.content, config, now)
         if source_type == "github_trending":
             return parse_github_source(response.content.decode("utf-8", errors="replace"), config, now)
         if source_type == "producthunt":

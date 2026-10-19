@@ -55,41 +55,38 @@
     {
       "id": "youtube_stuff_made_here",
       "name": "YouTube · Stuff Made Here",
-      "type": "rss",
+      "type": "youtube_rss",
       "category": "creative_video",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCj1VqrHhDte54oLgPG4xpuQ",
       "allowed_hosts": ["youtube.com", "www.youtube.com"],
       "default_tags": ["creative-video", "fabrication"],
       "max_items": 5,
       "window_hours": 168,
-      "enabled": false,
-      "disabled_reason": "public channel feed alternated between HTTP 200 and 404 during repeated validation; stable access not proven"
+      "enabled": true
     },
     {
       "id": "youtube_teaching_tech",
       "name": "YouTube · Teaching Tech",
-      "type": "rss",
+      "type": "youtube_rss",
       "category": "creative_video",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCbgBDBrwsikmtoLqtpc59Bw",
       "allowed_hosts": ["youtube.com", "www.youtube.com"],
       "default_tags": ["creative-video", "3d-printing"],
       "max_items": 5,
       "window_hours": 168,
-      "enabled": false,
-      "disabled_reason": "public channel feed alternated between HTTP 200 and 404 during repeated validation; stable access not proven"
+      "enabled": true
     },
     {
       "id": "youtube_diy_machines",
       "name": "YouTube · DIY Machines",
-      "type": "rss",
+      "type": "youtube_rss",
       "category": "creative_video",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC3jc4X-kEq-dEDYhQ8QoYnQ",
       "allowed_hosts": ["youtube.com", "www.youtube.com"],
       "default_tags": ["creative-video", "fabrication"],
       "max_items": 5,
       "window_hours": 168,
-      "enabled": false,
-      "disabled_reason": "public channel feed alternated between HTTP 200 and 404 during repeated validation; stable access not proven"
+      "enabled": true
     },
     {
       "id": "producthunt_maker",
@@ -222,6 +219,68 @@
       "enabled": true
     },
     {
+      "id": "make_magazine",
+      "name": "Make: Magazine",
+      "type": "rss",
+      "category": "maker_open_source",
+      "url": "https://makezine.com/feed/",
+      "allowed_hosts": ["makezine.com", "www.makezine.com"],
+      "default_tags": ["maker-project"],
+      "max_items": 8,
+      "window_hours": 168,
+      "enabled": true
+    },
+    {
+      "id": "prusa_blog",
+      "name": "Prusa Blog",
+      "type": "rss",
+      "category": "3d_printing",
+      "url": "https://blog.prusa3d.com/feed/",
+      "allowed_hosts": ["blog.prusa3d.com"],
+      "default_tags": ["3d-printing", "vendor-blog"],
+      "max_items": 5,
+      "window_hours": 168,
+      "enabled": true
+    },
+    {
+      "id": "bambu_lab_blog",
+      "name": "Bambu Lab Blog",
+      "type": "rss",
+      "category": "3d_printing",
+      "url": "https://blog.bambulab.com/feed/",
+      "allowed_hosts": ["blog.bambulab.com"],
+      "default_tags": ["3d-printing", "vendor-blog"],
+      "max_items": 5,
+      "window_hours": 168,
+      "enabled": true
+    },
+    {
+      "id": "cnx_software",
+      "name": "CNX Software",
+      "type": "rss",
+      "category": "new_products_trends",
+      "url": "https://www.cnx-software.com/feed/",
+      "allowed_hosts": ["cnx-software.com", "www.cnx-software.com"],
+      "default_tags": ["embedded", "vendor-blog"],
+      "require_maker_tags": true,
+      "max_items": 8,
+      "window_hours": 72,
+      "enabled": true
+    },
+    {
+      "id": "seeed_studio_blog",
+      "name": "Seeed Studio Blog",
+      "type": "rss",
+      "category": "maker_open_source",
+      "url": "https://www.seeedstudio.com/blog/feed/",
+      "allowed_hosts": ["seeedstudio.com", "www.seeedstudio.com"],
+      "default_tags": ["embedded", "vendor-blog"],
+      "require_maker_tags": true,
+      "max_items": 6,
+      "window_hours": 168,
+      "enabled": true
+    },
+    {
       "id": "crowd_supply",
       "name": "Crowd Supply",
       "type": "disabled",
@@ -264,22 +323,27 @@
     {
       "id": "arxiv_maker",
       "name": "arXiv",
-      "type": "disabled",
+      "type": "rss",
       "category": "frontier_research",
-      "url": "https://export.arxiv.org/api/query",
+      "url": "https://rss.arxiv.org/rss/cs.RO",
+      "allowed_hosts": ["arxiv.org", "rss.arxiv.org"],
+      "default_tags": ["research", "robotics"],
+      "require_maker_tags": true,
+      "max_items": 10,
       "window_hours": 72,
-      "enabled": false,
-      "disabled_reason": "public API returned HTTP 429 during repeated validation; retry policy not yet proven stable"
+      "enabled": true
     },
     {
       "id": "hackster",
       "name": "Hackster",
-      "type": "disabled",
+      "type": "rss",
       "category": "maker_open_source",
-      "url": "https://www.hackster.io/",
-      "window_hours": 72,
-      "enabled": false,
-      "disabled_reason": "candidate public feed returned HTTP 404; no stable official feed verified"
+      "url": "https://www.hackster.io/projects?format=atom",
+      "allowed_hosts": ["hackster.io", "www.hackster.io"],
+      "default_tags": ["maker-project", "open-source"],
+      "max_items": 10,
+      "window_hours": 168,
+      "enabled": true
     },
     {
       "id": "printables",
@@ -303,11 +367,12 @@
     }
   ],
   "declared_gaps": [
-    "YouTube channel feeds were unstable in repeated validation and are currently skipped pending a reliable API strategy",
+    "YouTube uses public per-channel Atom feeds; intermittent upstream HTTP failures remain visible in source status",
     "Reddit RSS exposes publication time and original links but no reliable vote/comment metrics, so heat remains unknown",
     "X coverage uses a public curated snapshot and is not full-platform search",
     "Bilibili, TikTok, WeChat, Douyin and Xiaohongshu were probed but remain explicitly skipped",
     "Crowd Supply, Kickstarter, Instructables and Thingiverse were probed but remain explicitly skipped",
+    "MakerWorld and Printables remain explicitly skipped; Prusa and Bambu Lab official blogs provide stable 3D-printing ecosystem coverage instead",
     "Crowdfunding sources are planned for a later source batch"
   ]
 }

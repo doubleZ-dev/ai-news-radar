@@ -10,6 +10,7 @@ from scripts.maker_sources import (
     parse_huggingface_daily,
     parse_producthunt_source,
     parse_rss_source,
+    parse_youtube_source,
 )
 
 
@@ -65,6 +66,45 @@ def test_rss_uses_comment_count_as_verifiable_heat():
     item = parse_rss_source(xml, source(), NOW)[0]
     assert item["heat_score"] == 3
     assert item["heat_evidence"] == ["comments: 18"]
+
+
+def test_youtube_uses_upload_time_and_preserves_views_as_heat_evidence():
+    recent = (NOW - timedelta(hours=2)).isoformat()
+    edited = (NOW - timedelta(hours=1)).isoformat()
+    stale = (NOW - timedelta(days=20)).isoformat()
+    xml = f'''<feed xmlns="http://www.w3.org/2005/Atom"
+      xmlns:yt="http://www.youtube.com/xml/schemas/2015"
+      xmlns:media="http://search.yahoo.com/mrss/">
+      <entry><yt:videoId>recent</yt:videoId><title>ESP32 Robot Build</title>
+        <link rel="alternate" href="https://www.youtube.com/watch?v=recent"/>
+        <published>{recent}</published><updated>{edited}</updated>
+        <media:group><media:description>3D printed desktop robot</media:description>
+        <media:community><media:starRating count="2500" average="5.00" min="1" max="5"/>
+        <media:statistics views="60000"/></media:community></media:group></entry>
+      <entry><yt:videoId>stale</yt:videoId><title>Old Robot</title>
+        <link rel="alternate" href="https://www.youtube.com/watch?v=stale"/>
+        <published>{stale}</published><updated>{edited}</updated></entry>
+    </feed>'''
+    items = parse_youtube_source(
+        xml,
+        source(
+            "youtube_maker",
+            "youtube_rss",
+            name="YouTube · Maker",
+            url="https://www.youtube.com/feeds/videos.xml?channel_id=test",
+            allowed_hosts=["www.youtube.com"],
+            category="creative_video",
+            default_tags=["creative-video"],
+            window_hours=168,
+        ),
+        NOW,
+    )
+    assert len(items) == 1
+    assert items[0]["published_at"] == "2026-10-19T06:00:00Z"
+    assert items[0]["metrics"] == {"views": 60000, "ratings": 2500}
+    assert items[0]["heat_score"] == 3
+    assert items[0]["heat_evidence"] == ["YouTube views: 60000"]
+    assert "creative-video" in items[0]["tags"]
 
 
 def test_curated_rss_can_add_source_tags_and_cap_items():
@@ -282,3 +322,49 @@ def test_collection_failure_is_visible_without_losing_healthy_source():
     assert payload["source_status"][2]["skipped"] is True
     assert any("offline" in gap for gap in payload["info_gaps"])
     assert any("not stable" in gap for gap in payload["info_gaps"])
+
+
+def test_youtube_transient_404_is_retried_and_still_reported_honestly():
+    class Response:
+        def __init__(self, status_code, content=b""):
+            self.status_code = status_code
+            self.content = content
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise RuntimeError(f"HTTP {self.status_code}")
+
+    recent = (NOW - timedelta(hours=1)).isoformat()
+    xml = f'''<feed xmlns="http://www.w3.org/2005/Atom"><entry>
+      <title>Robot build</title><link href="https://www.youtube.com/watch?v=x"/>
+      <published>{recent}</published></entry></feed>'''.encode()
+
+    class Session:
+        def __init__(self):
+            self.calls = 0
+
+        def get(self, *_args, **_kwargs):
+            self.calls += 1
+            return Response(404) if self.calls == 1 else Response(200, xml)
+
+    session = Session()
+    payload = collect_all(
+        session,
+        {
+            "sources": [
+                source(
+                    "youtube_maker",
+                    "youtube_rss",
+                    name="YouTube · Maker",
+                    url="https://www.youtube.com/feeds/videos.xml?channel_id=test",
+                    allowed_hosts=["www.youtube.com"],
+                    default_tags=["creative-video"],
+                    window_hours=168,
+                )
+            ]
+        },
+        NOW,
+    )
+    assert session.calls == 2
+    assert payload["source_status"][0]["ok"] is True
+    assert payload["total_items"] == 1

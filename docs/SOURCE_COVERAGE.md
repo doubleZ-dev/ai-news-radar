@@ -137,6 +137,28 @@ baseline, then let the aggregator layer add breadth.
   community signal lane so it can appear under the Community tab without
   occupying a standalone homepage block.
 
+## Maker Inspiration Radar Sources
+
+The maker fork has a separate, auditable candidate registry in
+`config/maker-sources.json`. Its public, no-secret layer now includes GitHub
+Trending, Hackaday, Hacker News, Reddit maker communities, Product Hunt,
+Hugging Face Daily Papers, Follow Builders X, official YouTube channel Atom
+feeds, Arduino, Adafruit, Raspberry Pi, SparkFun, Make, Prusa, Bambu Lab, CNX
+Software, Seeed Studio, arXiv Robotics RSS, Hackster projects Atom, and 3D
+Printing Industry.
+
+Every source keeps its own time window and cap. YouTube uses the original upload
+time rather than the mutable entry update time, and retains public view counts
+as heat evidence. arXiv uses the official category RSS instead of the query API
+that returned 429 during validation. A zero-item result is healthy only when the
+upstream feed parsed successfully; network and parser failures remain visible.
+
+Login-bound social platforms and sites protected by anti-bot challenges remain
+explicit advanced gaps. The registry does not claim coverage for MakerWorld,
+Printables, Bilibili, TikTok, WeChat, Douyin, Xiaohongshu, Kickstarter, Crowd
+Supply, Instructables, or Thingiverse until a stable public or privately
+authorized adapter passes live validation.
+
 ## Disabled Default Sources
 
 - **X API direct recent search**: supported as an advanced, secret-backed adapter
