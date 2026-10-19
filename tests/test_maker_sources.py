@@ -1,7 +1,13 @@
 from datetime import datetime, timedelta, timezone
 
 from scripts.collect_maker_candidates import collect_all
-from scripts.maker_sources import parse_github_source, parse_hn_payloads, parse_rss_source
+from scripts.maker_sources import (
+    parse_github_source,
+    parse_hn_payloads,
+    parse_huggingface_daily,
+    parse_producthunt_source,
+    parse_rss_source,
+)
 
 
 NOW = datetime(2026, 10, 19, 8, tzinfo=timezone.utc)
@@ -58,6 +64,19 @@ def test_rss_uses_comment_count_as_verifiable_heat():
     assert item["heat_evidence"] == ["comments: 18"]
 
 
+def test_curated_rss_can_add_source_tags_and_cap_items():
+    recent = (NOW - timedelta(hours=2)).isoformat()
+    xml = f"""<rss><channel>
+      <item><title>Build one</title><link>https://hackaday.com/one/</link><pubDate>{recent}</pubDate></item>
+      <item><title>Build two</title><link>https://hackaday.com/two/</link><pubDate>{recent}</pubDate></item>
+    </channel></rss>"""
+    items = parse_rss_source(
+        xml, source(default_tags=["creative-video"], max_items=1), NOW
+    )
+    assert len(items) == 1
+    assert items[0]["tags"] == ["creative-video"]
+
+
 def test_github_filters_non_maker_repositories_and_keeps_stars():
     html = """<article class="Box-row"><h2><a href="/team/robot">team/robot</a></h2>
       <p>ESP32 open source desktop robot</p><span>123 stars today</span></article>
@@ -90,6 +109,74 @@ def test_hn_deduplicates_queries_and_keeps_discussion_evidence():
     assert items[0]["evidence_links"]["discussion"] == ["https://news.ycombinator.com/item?id=42"]
 
 
+def test_producthunt_reuses_verified_feed_parser_and_filters_for_maker_value():
+    xml = f'''<feed xmlns="http://www.w3.org/2005/Atom">
+      <entry><title>Robot Bench</title><link href="https://www.producthunt.com/products/robot-bench"/>
+      <published>{NOW.isoformat()}</published><updated>{NOW.isoformat()}</updated>
+      <content type="html">3D printing and ESP32 robot prototyping</content></entry>
+      <entry><title>Finance App</title><link href="https://www.producthunt.com/products/finance-app"/>
+      <published>{NOW.isoformat()}</published><updated>{NOW.isoformat()}</updated>
+      <content type="html">Corporate invoice management</content></entry>
+    </feed>'''
+    items = parse_producthunt_source(
+        xml,
+        source("producthunt_maker", "producthunt", name="Product Hunt", category="new_products_trends"),
+        NOW,
+    )
+    assert [item["title"] for item in items] == ["Robot Bench"]
+    assert items[0]["heat_score"] is None
+    assert items[0]["published_at"] == "2026-10-19T08:00:00Z"
+
+
+def test_huggingface_daily_requires_focus_term_and_keeps_real_engagement():
+    payload = [
+        {
+            "paper": {
+                "id": "2610.12345",
+                "title": "Tactile Robot Hand",
+                "ai_summary": "A low-cost tactile sensor for manipulation.",
+                "submittedOnDailyAt": NOW.isoformat(),
+                "upvotes": 8,
+                "githubStars": 20,
+                "githubRepo": "https://github.com/example/tactile-hand",
+                "ai_keywords": ["robot", "tactile"],
+            },
+            "numComments": 3,
+        },
+        {
+            "paper": {
+                "id": "2610.99999",
+                "title": "Language model finance benchmark",
+                "ai_summary": "A text-only benchmark.",
+                "submittedOnDailyAt": NOW.isoformat(),
+            }
+        },
+    ]
+    items = parse_huggingface_daily(
+        payload,
+        source(
+            "huggingface_daily_maker",
+            "huggingface_daily",
+            name="Hugging Face Daily Papers",
+            category="frontier_research",
+            focus_terms=["robot", "tactile"],
+        ),
+        NOW,
+    )
+    assert len(items) == 1
+    assert items[0]["url"] == "https://huggingface.co/papers/2610.12345"
+    assert items[0]["metrics"] == {
+        "upvotes": 8,
+        "comments": 3,
+        "github_stars": 20,
+        "project_page": "",
+        "github_repo": "https://github.com/example/tactile-hand",
+    }
+    assert items[0]["heat_evidence"] == [
+        "HF engagement (upvotes + 2×comments + capped GitHub stars): 34"
+    ]
+
+
 def test_collection_failure_is_visible_without_losing_healthy_source():
     class Response:
         text = "<rss><channel><item><title>ESP32</title><link>https://hackaday.com/x/</link>" \
@@ -106,10 +193,16 @@ def test_collection_failure_is_visible_without_losing_healthy_source():
             return Response()
 
     config = {
-        "sources": [source(), source("broken", url="https://broken.example/feed")],
+        "sources": [
+            source(),
+            source("broken", url="https://broken.example/feed"),
+            source("disabled", enabled=False, disabled_reason="not stable"),
+        ],
         "declared_gaps": ["MakerWorld unavailable"],
     }
     payload = collect_all(Session(), config, NOW)
     assert payload["total_items"] == 1
-    assert [status["ok"] for status in payload["source_status"]] == [True, False]
+    assert [status["ok"] for status in payload["source_status"]] == [True, False, False]
+    assert payload["source_status"][2]["skipped"] is True
     assert any("offline" in gap for gap in payload["info_gaps"])
+    assert any("not stable" in gap for gap in payload["info_gaps"])

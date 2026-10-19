@@ -121,3 +121,19 @@ def test_reports_keep_chinese_text_and_every_original_link():
 def test_dated_archive_folder_uses_compact_calendar_date(tmp_path):
     assert report_output_dir(tmp_path, "2026-10-19", True) == tmp_path / "20261019"
     assert report_output_dir(tmp_path, "2026-10-19", False) == tmp_path
+
+
+def test_curated_report_distinguishes_skipped_from_failed_sources():
+    raw, analysis = packet()
+    validated = validate_analysis_packet(raw, analysis)
+    digest = build_daily_digest(validated["opportunities"], generated_at=NOW)
+    report = render_curated(
+        digest,
+        [
+            {"source": "Stable", "ok": True, "item_count": 1},
+            {"source": "Deferred", "ok": False, "skipped": True, "error": "HTTP 403", "item_count": 0},
+            {"source": "Broken", "ok": False, "skipped": False, "error": "timeout", "item_count": 0},
+        ],
+    )
+    assert "| Deferred | 已跳过：HTTP 403 | 0 |" in report
+    assert "| Broken | 失败：timeout | 0 |" in report

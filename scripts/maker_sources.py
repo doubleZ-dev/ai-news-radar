@@ -13,7 +13,12 @@ from urllib.parse import urlparse, urlunparse
 import feedparser
 from bs4 import BeautifulSoup
 
-from scripts.project_sources import parse_github_trending, source_timestamp
+from scripts.project_sources import (
+    parse_github_trending,
+    parse_producthunt_feed,
+    producthunt_activity,
+    source_timestamp,
+)
 
 
 UTC = timezone.utc
@@ -130,6 +135,8 @@ def parse_rss_source(
     allowed_hosts = config.get("allowed_hosts") or []
     records = []
     seen = set()
+    max_items = max(1, int(config.get("max_items", 80)))
+    default_tags = [str(tag) for tag in config.get("default_tags", []) if str(tag)]
     for entry in feed.entries[:80]:
         title = clean_text(entry.get("title"), 240)
         url = safe_public_url(entry.get("link"), allowed_hosts)
@@ -154,12 +161,14 @@ def parse_rss_source(
                 summary=summary,
                 published_at=published,
                 observed_at=now,
-                tags=maker_tags(title, summary),
+                tags=[*default_tags, *maker_tags(title, summary)],
                 metrics={"comments": comments},
                 heat_score=heat,
                 heat_evidence=evidence,
             )
         )
+        if len(records) >= max_items:
+            break
     return records
 
 
@@ -189,6 +198,118 @@ def parse_github_source(html: str, config: Mapping[str, Any], now: datetime) -> 
                 heat_evidence=evidence,
             )
         )
+    return records
+
+
+def parse_producthunt_source(
+    xml: str | bytes, config: Mapping[str, Any], now: datetime
+) -> list[dict[str, Any]]:
+    """Reuse the upstream feed parser, retaining only maker-relevant products."""
+    projects = parse_producthunt_feed(xml, now)
+    records = []
+    for project in projects:
+        tags = maker_tags(project["project_name"], project["summary"])
+        if not tags:
+            continue
+        activity = producthunt_activity(project)
+        records.append(
+            make_record(
+                source_id=str(config["id"]),
+                source_name=str(config["name"]),
+                category=str(config["category"]),
+                title=project["project_name"],
+                url=project["url"],
+                summary=project["summary"],
+                published_at=activity,
+                observed_at=now,
+                tags=tags,
+                metrics={"source_rank": project["source_rank"]},
+                heat_score=None,
+                heat_evidence=[],
+            )
+        )
+        if len(records) >= max(1, int(config.get("max_items", 10))):
+            break
+    return records
+
+
+def parse_huggingface_daily(
+    payload: Any, config: Mapping[str, Any], now: datetime
+) -> list[dict[str, Any]]:
+    """Parse maker-adjacent Hugging Face daily papers with measurable engagement."""
+    if not isinstance(payload, list):
+        raise ValueError(f"{config['name']} returned a non-list payload")
+    cutoff = now - timedelta(hours=int(config.get("window_hours", 72)))
+    focus_terms = tuple(str(term).lower() for term in config.get("focus_terms", []))
+    records = []
+    seen = set()
+    for wrapper in payload:
+        if not isinstance(wrapper, Mapping):
+            continue
+        paper = wrapper.get("paper") if isinstance(wrapper.get("paper"), Mapping) else wrapper
+        paper_id = str(paper.get("id") or "").strip()
+        title = clean_text(paper.get("title") or wrapper.get("title"), 240)
+        summary = clean_text(
+            paper.get("ai_summary") or paper.get("summary") or wrapper.get("summary")
+        )
+        submitted = source_timestamp(
+            paper.get("submittedOnDailyAt")
+            or wrapper.get("publishedAt")
+            or paper.get("publishedAt")
+        )
+        blob = f"{title} {summary} {' '.join(paper.get('ai_keywords') or [])}".lower()
+        if (
+            not paper_id
+            or paper_id in seen
+            or not title
+            or submitted is None
+            or not cutoff <= submitted <= now
+            or (focus_terms and not any(term in blob for term in focus_terms))
+        ):
+            continue
+        url = safe_public_url(f"https://huggingface.co/papers/{paper_id}", ["huggingface.co"])
+        if not url:
+            continue
+        seen.add(paper_id)
+        upvotes = max(0, int(paper.get("upvotes") or wrapper.get("upvotes") or 0))
+        comments = max(0, int(wrapper.get("numComments") or 0))
+        github_stars = max(0, int(paper.get("githubStars") or 0))
+        engagement = upvotes + comments * 2 + min(github_stars, 100)
+        heat, evidence = heat_from_count(
+            "HF engagement (upvotes + 2×comments + capped GitHub stars)", engagement
+        )
+        records.append(
+            make_record(
+                source_id=str(config["id"]),
+                source_name=str(config["name"]),
+                category=str(config["category"]),
+                title=title,
+                url=url,
+                summary=summary,
+                published_at=submitted,
+                observed_at=now,
+                tags=["research", *maker_tags(title, summary, blob)],
+                metrics={
+                    "upvotes": upvotes,
+                    "comments": comments,
+                    "github_stars": github_stars,
+                    "project_page": safe_public_url(paper.get("projectPage")),
+                    "github_repo": safe_public_url(paper.get("githubRepo")),
+                },
+                heat_score=heat,
+                heat_evidence=evidence,
+            )
+        )
+        evidence_links = records[-1]["evidence_links"]
+        for kind, raw_url in (
+            ("project", paper.get("projectPage")),
+            ("code", paper.get("githubRepo")),
+        ):
+            link = safe_public_url(raw_url)
+            if link:
+                evidence_links[kind] = [link]
+        if len(records) >= max(1, int(config.get("max_items", 10))):
+            break
     return records
 
 

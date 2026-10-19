@@ -39,12 +39,124 @@
       "allowed_hosts": ["3dprintingindustry.com", "www.3dprintingindustry.com"],
       "window_hours": 72,
       "enabled": true
+    },
+    {
+      "id": "reddit_maker_communities",
+      "name": "Reddit Maker Communities",
+      "type": "rss",
+      "category": "community_trends",
+      "url": "https://www.reddit.com/r/arduino+esp32+robotics+3Dprinting+diyelectronics/new/.rss",
+      "allowed_hosts": ["reddit.com", "www.reddit.com"],
+      "default_tags": ["community"],
+      "max_items": 15,
+      "window_hours": 72,
+      "enabled": true
+    },
+    {
+      "id": "youtube_stuff_made_here",
+      "name": "YouTube · Stuff Made Here",
+      "type": "rss",
+      "category": "creative_video",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCj1VqrHhDte54oLgPG4xpuQ",
+      "allowed_hosts": ["youtube.com", "www.youtube.com"],
+      "default_tags": ["creative-video", "fabrication"],
+      "max_items": 5,
+      "window_hours": 168,
+      "enabled": false,
+      "disabled_reason": "public channel feed alternated between HTTP 200 and 404 during repeated validation; stable access not proven"
+    },
+    {
+      "id": "youtube_teaching_tech",
+      "name": "YouTube · Teaching Tech",
+      "type": "rss",
+      "category": "creative_video",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCbgBDBrwsikmtoLqtpc59Bw",
+      "allowed_hosts": ["youtube.com", "www.youtube.com"],
+      "default_tags": ["creative-video", "3d-printing"],
+      "max_items": 5,
+      "window_hours": 168,
+      "enabled": false,
+      "disabled_reason": "public channel feed alternated between HTTP 200 and 404 during repeated validation; stable access not proven"
+    },
+    {
+      "id": "youtube_diy_machines",
+      "name": "YouTube · DIY Machines",
+      "type": "rss",
+      "category": "creative_video",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC3jc4X-kEq-dEDYhQ8QoYnQ",
+      "allowed_hosts": ["youtube.com", "www.youtube.com"],
+      "default_tags": ["creative-video", "fabrication"],
+      "max_items": 5,
+      "window_hours": 168,
+      "enabled": false,
+      "disabled_reason": "public channel feed alternated between HTTP 200 and 404 during repeated validation; stable access not proven"
+    },
+    {
+      "id": "producthunt_maker",
+      "name": "Product Hunt",
+      "type": "producthunt",
+      "category": "new_products_trends",
+      "url": "https://www.producthunt.com/feed",
+      "max_items": 10,
+      "window_hours": 24,
+      "enabled": true
+    },
+    {
+      "id": "huggingface_daily_maker",
+      "name": "Hugging Face Daily Papers",
+      "type": "huggingface_daily",
+      "category": "frontier_research",
+      "url": "https://huggingface.co/api/daily_papers?limit=100",
+      "focus_terms": ["robot", "embodied", "manipulation", "3d", "fabricat", "sensor", "tactile", "haptic", "wearable", "hardware", "motion", "spatial"],
+      "max_items": 10,
+      "window_hours": 72,
+      "enabled": true
+    },
+    {
+      "id": "arxiv_maker",
+      "name": "arXiv",
+      "type": "disabled",
+      "category": "frontier_research",
+      "url": "https://export.arxiv.org/api/query",
+      "window_hours": 72,
+      "enabled": false,
+      "disabled_reason": "public API returned HTTP 429 during repeated validation; retry policy not yet proven stable"
+    },
+    {
+      "id": "hackster",
+      "name": "Hackster",
+      "type": "disabled",
+      "category": "maker_open_source",
+      "url": "https://www.hackster.io/",
+      "window_hours": 72,
+      "enabled": false,
+      "disabled_reason": "candidate public feed returned HTTP 404; no stable official feed verified"
+    },
+    {
+      "id": "printables",
+      "name": "Printables",
+      "type": "disabled",
+      "category": "3d_printing",
+      "url": "https://www.printables.com/",
+      "window_hours": 72,
+      "enabled": false,
+      "disabled_reason": "candidate feed and direct page access returned HTTP 403; stable public endpoint not verified"
+    },
+    {
+      "id": "makerworld",
+      "name": "MakerWorld",
+      "type": "disabled",
+      "category": "3d_printing",
+      "url": "https://makerworld.com/en",
+      "window_hours": 72,
+      "enabled": false,
+      "disabled_reason": "direct page access returned HTTP 403; stable public endpoint not verified"
     }
   ],
   "declared_gaps": [
-    "MakerWorld: no stable official public feed has been integrated yet",
-    "YouTube and Bilibili: channel allowlist and API strategy are not configured yet",
-    "X and Xiaohongshu: access and evidence strategy are not configured yet",
-    "arXiv and crowdfunding sources are planned for the next source batch"
+    "YouTube channel feeds were unstable in repeated validation and are currently skipped pending a reliable API strategy",
+    "Reddit RSS exposes publication time and original links but no reliable vote/comment metrics, so heat remains unknown",
+    "Bilibili, TikTok, X, WeChat, Douyin and Xiaohongshu are not yet connected to Maker Radar",
+    "Crowdfunding sources are planned for a later source batch"
   ]
 }

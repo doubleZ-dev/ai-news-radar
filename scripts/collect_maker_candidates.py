@@ -18,7 +18,13 @@ from urllib3.util.retry import Retry
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scripts.maker_sources import parse_github_source, parse_hn_payloads, parse_rss_source
+from scripts.maker_sources import (
+    parse_github_source,
+    parse_hn_payloads,
+    parse_huggingface_daily,
+    parse_producthunt_source,
+    parse_rss_source,
+)
 
 
 UTC = timezone.utc
@@ -30,7 +36,7 @@ def collect_source(
     session: requests.Session, config: Mapping[str, Any], now: datetime
 ) -> list[dict[str, Any]]:
     source_type = config["type"]
-    if source_type in {"rss", "github_trending"}:
+    if source_type in {"rss", "github_trending", "producthunt", "huggingface_daily"}:
         response = session.get(str(config["url"]), timeout=30)
         response.raise_for_status()
         if source_type == "rss":
@@ -38,7 +44,11 @@ def collect_source(
             # requests.text may otherwise assume ISO-8859-1 and corrupt UTF-8
             # punctuation before the parser sees it.
             return parse_rss_source(response.content, config, now)
-        return parse_github_source(response.content.decode("utf-8", errors="replace"), config, now)
+        if source_type == "github_trending":
+            return parse_github_source(response.content.decode("utf-8", errors="replace"), config, now)
+        if source_type == "producthunt":
+            return parse_producthunt_source(response.content, config, now)
+        return parse_huggingface_daily(response.json(), config, now)
     if source_type == "hn_algolia":
         cutoff = int((now.timestamp() - int(config.get("window_hours", 72)) * 3600))
         payloads = []
@@ -66,6 +76,19 @@ def collect_all(
     statuses = []
     for source in config.get("sources", []):
         if not source.get("enabled", True):
+            statuses.append(
+                {
+                    "source_id": source["id"],
+                    "source": source["name"],
+                    "category": source["category"],
+                    "ok": False,
+                    "skipped": True,
+                    "item_count": 0,
+                    "window_hours": source.get("window_hours"),
+                    "duration_ms": 0,
+                    "error": source.get("disabled_reason") or "disabled",
+                }
+            )
             continue
         started = time.perf_counter()
         error = None
@@ -81,6 +104,7 @@ def collect_all(
                 "source": source["name"],
                 "category": source["category"],
                 "ok": error is None,
+                "skipped": False,
                 "item_count": len(records),
                 "window_hours": source.get("window_hours"),
                 "duration_ms": int((time.perf_counter() - started) * 1000),
@@ -127,7 +151,12 @@ def main() -> int:
     payload = collect_all(session, config, datetime.now(UTC))
     write_json(args.output, payload)
     healthy = sum(1 for status in payload["source_status"] if status["ok"])
-    print(f"Wrote: {args.output} ({payload['total_items']} items, {healthy}/{len(payload['source_status'])} sources healthy)")
+    skipped = sum(1 for status in payload["source_status"] if status.get("skipped"))
+    failed = len(payload["source_status"]) - healthy - skipped
+    print(
+        f"Wrote: {args.output} ({payload['total_items']} items, "
+        f"{healthy} healthy, {skipped} skipped, {failed} failed)"
+    )
     return 0
 
 

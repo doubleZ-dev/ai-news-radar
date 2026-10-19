@@ -72,7 +72,12 @@ def render_curated(digest: Mapping[str, Any], source_status: list[Mapping[str, A
         ]
     )
     for status in source_status:
-        state = "正常" if status.get("ok") else f"失败：{status.get('error')}"
+        if status.get("ok"):
+            state = "正常"
+        elif status.get("skipped"):
+            state = f"已跳过：{status.get('error')}"
+        else:
+            state = f"失败：{status.get('error')}"
         lines.append(f"| {status.get('source')} | {state} | {status.get('item_count', 0)} |")
     return "\n".join(lines).rstrip() + "\n"
 

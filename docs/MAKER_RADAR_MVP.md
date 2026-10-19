@@ -24,6 +24,7 @@ The implementation lives in:
 - `scripts/build_maker_digest.py`: command-line entry point for producing a digest.
 - `prompts/maker-opportunity-analysis.md`: model instructions and JSON contract.
 - `config/maker-radar.json`: the initial user profile and product limits.
+- `docs/MAKER_SOURCE_STATUS.md`: live-validated source coverage and explicit skips.
 - `tests/test_maker_analysis.py`, `tests/test_maker_opportunity.py`, and
   `tests/test_idea_bank.py`: behavior contract.
 
