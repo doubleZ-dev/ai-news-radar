@@ -120,7 +120,9 @@ def make_record(
     }
 
 
-def parse_rss_source(xml: str, config: Mapping[str, Any], now: datetime) -> list[dict[str, Any]]:
+def parse_rss_source(
+    xml: str | bytes, config: Mapping[str, Any], now: datetime
+) -> list[dict[str, Any]]:
     feed = feedparser.parse(xml)
     if not feed.entries:
         raise ValueError(f"{config['name']} returned no feed entries")

@@ -17,10 +17,15 @@ The first milestone freezes five product contracts before adding more sources:
 The implementation lives in:
 
 - `scripts/maker_opportunity.py`: validation, URL dedupe, selection, digest JSON.
+- `scripts/maker_analysis.py`: auditable handoff from every raw discovery to a
+  selected or rejected decision.
+- `scripts/render_maker_reports.py`: UTF-8 curated and complete Markdown views.
 - `scripts/idea_bank.py`: local, explicit save/ignore/research actions.
 - `scripts/build_maker_digest.py`: command-line entry point for producing a digest.
+- `prompts/maker-opportunity-analysis.md`: model instructions and JSON contract.
 - `config/maker-radar.json`: the initial user profile and product limits.
-- `tests/test_maker_opportunity.py` and `tests/test_idea_bank.py`: behavior contract.
+- `tests/test_maker_analysis.py`, `tests/test_maker_opportunity.py`, and
+  `tests/test_idea_bank.py`: behavior contract.
 
 The local Idea Bank is intentionally ignored by Git. It may contain personal
 preferences and must not be published through GitHub Pages by default.
@@ -48,9 +53,23 @@ The source registry is `config/maker-sources.json`. Source failures and
 platforms without a stable integration are preserved in `info_gaps`; an empty
 or failed source is never reported as successfully scanned.
 
+After an agent follows `prompts/maker-opportunity-analysis.md` and writes
+`data/maker-analysis.json`, validate the traceability rules and render both
+reader views:
+
+```bash
+python scripts/render_maker_reports.py \
+  --raw data/maker-candidates.json \
+  --analysis data/maker-analysis.json \
+  --output-dir reports/daily
+```
+
+The curated report contains five to eight opportunities. The complete report
+retains every raw source link plus its explicit selection decision. Both are
+local generated artifacts and are ignored by Git by default.
+
 ## Next milestone
 
-Feed existing public candidates from GitHub Trending, Product Hunt, RSS and
-Hacker News into an opportunity-analysis stage. The analysis stage may use an
-LLM when configured, but deterministic validation and selection must keep
-working without a model key.
+Add stable adapters for MakerWorld, Printables, YouTube, Bilibili, Reddit,
+arXiv, Kickstarter, and Crowd Supply. Prefer public feeds and APIs, preserve
+per-source failure reporting, and avoid requiring a model API key in GitHub.

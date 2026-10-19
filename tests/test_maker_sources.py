@@ -37,6 +37,17 @@ def test_rss_preserves_time_evidence_and_unknown_heat():
     assert items[0]["analysis_state"] == "pending"
 
 
+def test_rss_bytes_preserve_utf8_punctuation():
+    recent = (NOW - timedelta(hours=2)).isoformat()
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?><rss><channel><item>
+      <title>Robot — small but expressive</title><link>https://hackaday.com/utf8/</link>
+      <pubDate>{recent}</pubDate><description>Maker’s test…</description>
+      </item></channel></rss>""".encode("utf-8")
+    item = parse_rss_source(xml, source(), NOW)[0]
+    assert item["title"] == "Robot — small but expressive"
+    assert item["summary"] == "Maker’s test…"
+
+
 def test_rss_uses_comment_count_as_verifiable_heat():
     recent = (NOW - timedelta(hours=2)).isoformat()
     xml = f"""<rss xmlns:slash="http://purl.org/rss/1.0/modules/slash/"><channel><item>
@@ -83,6 +94,7 @@ def test_collection_failure_is_visible_without_losing_healthy_source():
     class Response:
         text = "<rss><channel><item><title>ESP32</title><link>https://hackaday.com/x/</link>" \
             f"<pubDate>{NOW.isoformat()}</pubDate></item></channel></rss>"
+        content = text.encode("utf-8")
 
         def raise_for_status(self):
             return None

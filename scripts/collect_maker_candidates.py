@@ -12,6 +12,8 @@ import time
 from typing import Any, Mapping
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -32,8 +34,11 @@ def collect_source(
         response = session.get(str(config["url"]), timeout=30)
         response.raise_for_status()
         if source_type == "rss":
-            return parse_rss_source(response.text, config, now)
-        return parse_github_source(response.text, config, now)
+            # Let feedparser inspect the feed's own XML/HTTP encoding metadata.
+            # requests.text may otherwise assume ISO-8859-1 and corrupt UTF-8
+            # punctuation before the parser sees it.
+            return parse_rss_source(response.content, config, now)
+        return parse_github_source(response.content.decode("utf-8", errors="replace"), config, now)
     if source_type == "hn_algolia":
         cutoff = int((now.timestamp() - int(config.get("window_hours", 72)) * 3600))
         payloads = []
@@ -110,6 +115,15 @@ def main() -> int:
     config = json.loads(args.config.read_text(encoding="utf-8"))
     session = requests.Session()
     session.headers.update({"User-Agent": "MakerInspirationRadar/0.1 (+https://github.com/doubleZ-dev/ai-news-radar)"})
+    retry = Retry(
+        total=3,
+        connect=3,
+        read=3,
+        backoff_factor=0.8,
+        status_forcelist=(429, 500, 502, 503, 504),
+        allowed_methods=frozenset({"GET"}),
+    )
+    session.mount("https://", HTTPAdapter(max_retries=retry))
     payload = collect_all(session, config, datetime.now(UTC))
     write_json(args.output, payload)
     healthy = sum(1 for status in payload["source_status"] if status["ok"])

@@ -29,6 +29,8 @@ data/idea-bank.json
 data/maker-radar-local.json
 data/maker-candidates.json
 data/maker-daily.json
+data/maker-analysis.json
+reports/daily/
 
 # Local OS/editor noise
 .DS_Store
