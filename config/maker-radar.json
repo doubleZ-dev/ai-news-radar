@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "name": "Maker Inspiration Radar",
+  "daily_selection": {
+    "min_maker_fit": 3,
+    "max_items": 8,
+    "top_focus_count": 2,
+    "idea_direction_count": 2,
+    "reserve_hidden_gem": true
+  },
+  "user_profile": {
+    "skills": [
+      "electronics",
+      "esp32",
+      "sensors",
+      "embedded-systems",
+      "robotics",
+      "mechanical-design",
+      "3d-printing",
+      "ai-programming",
+      "software-hardware-integration"
+    ],
+    "interests": [
+      "desktop-interaction",
+      "creative-toys",
+      "kinetic-devices",
+      "open-hardware",
+      "video-friendly-builds",
+      "kits-and-commercialization"
+    ],
+    "workflow": [
+      "discover",
+      "build",
+      "publish",
+      "collect-feedback",
+      "explore-commercialization"
+    ]
+  },
+  "idea_bank": {
+    "public_actions": ["save", "ignore", "research"],
+    "automatic_project_promotion": false,
+    "local_path": "data/idea-bank.json"
+  }
+}
