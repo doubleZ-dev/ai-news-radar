@@ -21,6 +21,7 @@ if __package__ in {None, ""}:
 from scripts.maker_sources import (
     parse_github_source,
     parse_hn_payloads,
+    parse_follow_builders_x,
     parse_huggingface_daily,
     parse_producthunt_source,
     parse_rss_source,
@@ -36,7 +37,13 @@ def collect_source(
     session: requests.Session, config: Mapping[str, Any], now: datetime
 ) -> list[dict[str, Any]]:
     source_type = config["type"]
-    if source_type in {"rss", "github_trending", "producthunt", "huggingface_daily"}:
+    if source_type in {
+        "rss",
+        "github_trending",
+        "producthunt",
+        "huggingface_daily",
+        "follow_builders_x",
+    }:
         response = session.get(str(config["url"]), timeout=30)
         response.raise_for_status()
         if source_type == "rss":
@@ -48,7 +55,9 @@ def collect_source(
             return parse_github_source(response.content.decode("utf-8", errors="replace"), config, now)
         if source_type == "producthunt":
             return parse_producthunt_source(response.content, config, now)
-        return parse_huggingface_daily(response.json(), config, now)
+        if source_type == "huggingface_daily":
+            return parse_huggingface_daily(response.json(), config, now)
+        return parse_follow_builders_x(response.json(), config, now)
     if source_type == "hn_algolia":
         cutoff = int((now.timestamp() - int(config.get("window_hours", 72)) * 3600))
         payloads = []

@@ -113,6 +113,66 @@
       "enabled": true
     },
     {
+      "id": "follow_builders_x_maker",
+      "name": "X · Follow Builders",
+      "type": "follow_builders_x",
+      "category": "community_trends",
+      "url": "https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/feed-x.json",
+      "max_items": 12,
+      "window_hours": 48,
+      "enabled": true
+    },
+    {
+      "id": "bilibili_maker",
+      "name": "Bilibili",
+      "type": "disabled",
+      "category": "creative_video",
+      "url": "https://api.bilibili.com/x/web-interface/search/type",
+      "window_hours": 168,
+      "enabled": false,
+      "disabled_reason": "public video search returned HTTP 412 during validation; no stable authenticated or official feed configured"
+    },
+    {
+      "id": "xiaohongshu_maker",
+      "name": "Xiaohongshu",
+      "type": "disabled",
+      "category": "community_trends",
+      "url": "https://api.tikhub.io/",
+      "window_hours": 168,
+      "enabled": false,
+      "disabled_reason": "local TIKHUB_API_KEY is not configured; no stable unauthenticated endpoint is available"
+    },
+    {
+      "id": "douyin_maker",
+      "name": "Douyin",
+      "type": "disabled",
+      "category": "creative_video",
+      "url": "https://api.tikhub.io/",
+      "window_hours": 168,
+      "enabled": false,
+      "disabled_reason": "local TIKHUB_API_KEY is not configured; no stable unauthenticated endpoint is available"
+    },
+    {
+      "id": "tiktok_maker",
+      "name": "TikTok",
+      "type": "disabled",
+      "category": "creative_video",
+      "url": "https://www.tiktok.com/",
+      "window_hours": 168,
+      "enabled": false,
+      "disabled_reason": "no stable public search/feed or locally authorized API provider has been configured"
+    },
+    {
+      "id": "wechat_official_accounts_maker",
+      "name": "WeChat Official Accounts",
+      "type": "disabled",
+      "category": "community_trends",
+      "url": "https://api.bestblogs.dev/",
+      "window_hours": 168,
+      "enabled": false,
+      "disabled_reason": "candidate public aggregator endpoints returned HTTP 403 and no account/feed allowlist is configured"
+    },
+    {
       "id": "arxiv_maker",
       "name": "arXiv",
       "type": "disabled",
@@ -156,7 +216,8 @@
   "declared_gaps": [
     "YouTube channel feeds were unstable in repeated validation and are currently skipped pending a reliable API strategy",
     "Reddit RSS exposes publication time and original links but no reliable vote/comment metrics, so heat remains unknown",
-    "Bilibili, TikTok, X, WeChat, Douyin and Xiaohongshu are not yet connected to Maker Radar",
+    "X coverage uses a public curated snapshot and is not full-platform search",
+    "Bilibili, TikTok, WeChat, Douyin and Xiaohongshu were probed but remain explicitly skipped",
     "Crowdfunding sources are planned for a later source batch"
   ]
 }

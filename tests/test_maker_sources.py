@@ -1,9 +1,12 @@
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from scripts.collect_maker_candidates import collect_all
 from scripts.maker_sources import (
     parse_github_source,
     parse_hn_payloads,
+    parse_follow_builders_x,
     parse_huggingface_daily,
     parse_producthunt_source,
     parse_rss_source,
@@ -175,6 +178,60 @@ def test_huggingface_daily_requires_focus_term_and_keeps_real_engagement():
     assert items[0]["heat_evidence"] == [
         "HF engagement (upvotes + 2×comments + capped GitHub stars): 34"
     ]
+
+
+def test_follow_builders_x_filters_non_maker_posts_and_preserves_metrics():
+    payload = {
+        "generatedAt": NOW.isoformat(),
+        "x": [
+            {
+                "name": "Builder",
+                "handle": "builder",
+                "bio": "Open hardware projects",
+                "tweets": [
+                    {
+                        "id": "1",
+                        "text": "Built an ESP32 haptic robot controller",
+                        "createdAt": (NOW - timedelta(hours=1)).isoformat(),
+                        "url": "https://x.com/builder/status/1",
+                        "likes": 20,
+                        "retweets": 4,
+                        "replies": 3,
+                    },
+                    {
+                        "id": "2",
+                        "text": "Quarterly finance results",
+                        "createdAt": (NOW - timedelta(hours=1)).isoformat(),
+                        "url": "https://x.com/builder/status/2",
+                        "likes": 100,
+                        "retweets": 20,
+                        "replies": 10,
+                    },
+                ],
+            }
+        ],
+    }
+    items = parse_follow_builders_x(
+        payload,
+        source(
+            "follow_builders_x_maker",
+            "follow_builders_x",
+            name="X · Follow Builders",
+            category="community_trends",
+        ),
+        NOW,
+    )
+    assert len(items) == 1
+    assert items[0]["metrics"]["handle"] == "builder"
+    assert items[0]["heat_evidence"] == [
+        "X engagement (likes + 2×reposts + replies): 31"
+    ]
+    assert items[0]["heat_score"] == 3
+
+
+def test_follow_builders_x_rejects_invalid_payload_as_source_failure():
+    with pytest.raises(ValueError, match="invalid X feed"):
+        parse_follow_builders_x({}, source(name="X · Follow Builders"), NOW)
 
 
 def test_collection_failure_is_visible_without_losing_healthy_source():

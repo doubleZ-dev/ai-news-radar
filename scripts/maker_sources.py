@@ -313,6 +313,72 @@ def parse_huggingface_daily(
     return records
 
 
+def parse_follow_builders_x(
+    payload: Any, config: Mapping[str, Any], now: datetime
+) -> list[dict[str, Any]]:
+    """Parse the public, GitHub-generated Follow Builders X snapshot."""
+    if not isinstance(payload, Mapping) or not isinstance(payload.get("x"), list):
+        raise ValueError(f"{config['name']} returned an invalid X feed")
+    cutoff = now - timedelta(hours=int(config.get("window_hours", 48)))
+    records = []
+    seen = set()
+    for builder in payload["x"]:
+        if not isinstance(builder, Mapping):
+            continue
+        name = clean_text(builder.get("name") or builder.get("handle"), 120)
+        handle = clean_text(builder.get("handle"), 80).lstrip("@")
+        for post in builder.get("tweets") or []:
+            if not isinstance(post, Mapping):
+                continue
+            text = clean_text(post.get("text"), 1000)
+            url = safe_public_url(post.get("url"), ["x.com", "www.x.com", "twitter.com", "www.twitter.com"])
+            published = source_timestamp(post.get("createdAt"))
+            # The author's profile may mention hardware even when an individual
+            # post is unrelated. Filter on the post itself to avoid that bleed.
+            tags = maker_tags(text)
+            if (
+                not text
+                or not url
+                or url in seen
+                or published is None
+                or not cutoff <= published <= now
+                or not tags
+            ):
+                continue
+            seen.add(url)
+            likes = max(0, int(post.get("likes") or 0))
+            retweets = max(0, int(post.get("retweets") or 0))
+            replies = max(0, int(post.get("replies") or 0))
+            engagement = likes + retweets * 2 + replies
+            heat, evidence = heat_from_count(
+                "X engagement (likes + 2×reposts + replies)", engagement
+            )
+            records.append(
+                make_record(
+                    source_id=str(config["id"]),
+                    source_name=str(config["name"]),
+                    category=str(config["category"]),
+                    title=text[:240],
+                    url=url,
+                    summary=text,
+                    published_at=published,
+                    observed_at=now,
+                    tags=["social", *tags],
+                    metrics={
+                        "author": name,
+                        "handle": handle,
+                        "likes": likes,
+                        "reposts": retweets,
+                        "replies": replies,
+                    },
+                    heat_score=heat,
+                    heat_evidence=evidence,
+                )
+            )
+    records.sort(key=lambda item: item["published_at"] or "", reverse=True)
+    return records[: max(1, int(config.get("max_items", 12)))]
+
+
 def parse_hn_payloads(
     payloads: Iterable[tuple[str, Mapping[str, Any]]],
     config: Mapping[str, Any],

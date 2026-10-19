@@ -15,6 +15,7 @@ valid healthy result when the upstream feed itself contains entries.
 | Reddit Maker Communities | Public combined RSS | Covers Arduino, ESP32, Robotics, 3Dprinting, and DIYElectronics in one request to avoid 429 bursts. RSS has no reliable votes/comments, so heat stays unknown. |
 | Product Hunt | Official Atom feed | Reuses the upstream project's timestamp-safe parser and keeps maker-related products only. |
 | Hugging Face Daily Papers | Public JSON endpoint | Keeps recent maker-adjacent research and preserves upvotes, comments, code, and project links when present. |
+| X · Follow Builders | Public GitHub-generated JSON | Curated X snapshot with original post links and engagement metrics; this is not full-platform X search. |
 
 ## Probed but intentionally skipped
 
@@ -27,6 +28,11 @@ valid healthy result when the upstream feed itself contains entries.
 | Hackster | Candidate feed returned HTTP 404 | No stable official feed has been verified. |
 | Printables | Candidate feed/page returned HTTP 403 | No stable public endpoint has been verified. |
 | MakerWorld | Direct page returned HTTP 403 | No stable public endpoint has been verified. |
+| Bilibili | Public video search returned HTTP 412 | No stable official feed or authenticated path is configured. |
+| Xiaohongshu | No local TikHub API key | The existing credentialed adapter cannot run, and no stable unauthenticated endpoint is available. |
+| Douyin | No local TikHub API key | The existing credentialed adapter cannot run, and no stable unauthenticated endpoint is available. |
+| TikTok | No stable public search/feed | No locally authorized API provider is configured. |
+| WeChat Official Accounts | Candidate aggregator returned HTTP 403 | No explicit account/feed allowlist is configured. |
 
 The skipped entries remain in `config/maker-sources.json` with
 `enabled: false`. They appear in source health and `info_gaps`, but never

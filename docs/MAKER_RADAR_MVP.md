@@ -78,3 +78,7 @@ local generated artifacts and are ignored by Git by default.
 Add stable adapters for MakerWorld, Printables, YouTube, Bilibili, Reddit,
 arXiv, Kickstarter, and Crowd Supply. Prefer public feeds and APIs, preserve
 per-source failure reporting, and avoid requiring a model API key in GitHub.
+
+Social sources follow the same rule: public curated snapshots may be enabled
+after repeated validation, while account-bound or credentialed platforms stay
+explicitly skipped until local authorization is configured.
