@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import html
 import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
@@ -25,7 +26,9 @@ UTC = timezone.utc
 
 
 def clean_text(value: Any) -> str:
-    return re.sub(r"\s+", " ", BeautifulSoup(str(value or ""), "html.parser").get_text(" ", strip=True)).strip()
+    raw = str(value or "")
+    text = BeautifulSoup(raw, "html.parser").get_text(" ", strip=True) if "<" in raw else html.unescape(raw)
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def public_url(value: Any, host: str) -> str:

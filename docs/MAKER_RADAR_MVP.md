@@ -25,15 +25,28 @@ The implementation lives in:
 The local Idea Bank is intentionally ignored by Git. It may contain personal
 preferences and must not be published through GitHub Pages by default.
 
-Run the deterministic stage with normalized candidate data:
+Run the deterministic selection stage after the analysis stage has produced
+fully normalized opportunity data (the pre-analysis candidate pool is not yet
+valid input for this command):
 
 ```bash
 python scripts/build_maker_digest.py \
-  --input data/maker-candidates.json \
+  --input data/maker-opportunities.json \
   --output data/maker-daily.json \
   --idea-bank data/idea-bank.json \
   --info-gap "YouTube search unavailable"
 ```
+
+Collect the public pre-analysis candidate pool first:
+
+```bash
+python scripts/collect_maker_candidates.py \
+  --output data/maker-candidates.json
+```
+
+The source registry is `config/maker-sources.json`. Source failures and
+platforms without a stable integration are preserved in `info_gaps`; an empty
+or failed source is never reported as successfully scanned.
 
 ## Next milestone
 

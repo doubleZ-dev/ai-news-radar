@@ -27,6 +27,8 @@ feeds/private*.opml
 data/email-digest.json
 data/idea-bank.json
 data/maker-radar-local.json
+data/maker-candidates.json
+data/maker-daily.json
 
 # Local OS/editor noise
 .DS_Store

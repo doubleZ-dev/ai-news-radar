@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "github_trending",
+      "name": "GitHub Trending",
+      "type": "github_trending",
+      "category": "maker_open_source",
+      "url": "https://github.com/trending?since=daily",
+      "window_hours": 24,
+      "enabled": true
+    },
+    {
+      "id": "hackaday",
+      "name": "Hackaday",
+      "type": "rss",
+      "category": "maker_open_source",
+      "url": "https://hackaday.com/feed/",
+      "allowed_hosts": ["hackaday.com", "www.hackaday.com"],
+      "window_hours": 72,
+      "enabled": true
+    },
+    {
+      "id": "hackernews_maker",
+      "name": "Hacker News",
+      "type": "hn_algolia",
+      "category": "community_trends",
+      "url": "https://hn.algolia.com/api/v1/search_by_date",
+      "queries": ["esp32", "arduino", "robotics", "3d printing", "open source hardware", "CAD"],
+      "window_hours": 72,
+      "enabled": true
+    },
+    {
+      "id": "3d_printing_industry",
+      "name": "3D Printing Industry",
+      "type": "rss",
+      "category": "3d_printing",
+      "url": "https://3dprintingindustry.com/feed/",
+      "allowed_hosts": ["3dprintingindustry.com", "www.3dprintingindustry.com"],
+      "window_hours": 72,
+      "enabled": true
+    }
+  ],
+  "declared_gaps": [
+    "MakerWorld: no stable official public feed has been integrated yet",
+    "YouTube and Bilibili: channel allowlist and API strategy are not configured yet",
+    "X and Xiaohongshu: access and evidence strategy are not configured yet",
+    "arXiv and crowdfunding sources are planned for the next source batch"
+  ]
+}
