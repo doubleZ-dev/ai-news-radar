@@ -145,6 +145,9 @@ def parse_rss_source(
             continue
         seen.add(url)
         summary = clean_text(entry.get("summary") or entry.get("description"))
+        detected_tags = maker_tags(title, summary)
+        if config.get("require_maker_tags") and not detected_tags:
+            continue
         raw_comments = entry.get("slash_comments")
         try:
             comments = int(raw_comments) if raw_comments is not None else None
@@ -161,7 +164,7 @@ def parse_rss_source(
                 summary=summary,
                 published_at=published,
                 observed_at=now,
-                tags=[*default_tags, *maker_tags(title, summary)],
+                tags=[*default_tags, *detected_tags],
                 metrics={"comments": comments},
                 heat_score=heat,
                 heat_evidence=evidence,

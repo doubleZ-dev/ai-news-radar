@@ -80,6 +80,25 @@ def test_curated_rss_can_add_source_tags_and_cap_items():
     assert items[0]["tags"] == ["creative-video"]
 
 
+def test_curated_rss_can_require_maker_signal_before_default_tags():
+    recent = (NOW - timedelta(hours=2)).isoformat()
+    xml = f"""<rss><channel>
+      <item><title>NOAA winter outlook</title><link>https://hackaday.com/weather/</link><pubDate>{recent}</pubDate></item>
+      <item><title>Chainable LED pixel</title><link>https://hackaday.com/led/</link><pubDate>{recent}</pubDate></item>
+    </channel></rss>"""
+    items = parse_rss_source(
+        xml,
+        source(
+            default_tags=["vendor-blog"],
+            require_maker_tags=True,
+            max_items=5,
+        ),
+        NOW,
+    )
+    assert [item["title"] for item in items] == ["Chainable LED pixel"]
+    assert items[0]["tags"] == ["interaction", "vendor-blog"]
+
+
 def test_github_filters_non_maker_repositories_and_keeps_stars():
     html = """<article class="Box-row"><h2><a href="/team/robot">team/robot</a></h2>
       <p>ESP32 open source desktop robot</p><span>123 stars today</span></article>

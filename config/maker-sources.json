@@ -173,6 +173,95 @@
       "disabled_reason": "candidate public aggregator endpoints returned HTTP 403 and no account/feed allowlist is configured"
     },
     {
+      "id": "arduino_blog",
+      "name": "Arduino Blog",
+      "type": "rss",
+      "category": "maker_open_source",
+      "url": "https://blog.arduino.cc/feed/",
+      "allowed_hosts": ["blog.arduino.cc"],
+      "default_tags": ["embedded", "vendor-blog"],
+      "max_items": 5,
+      "window_hours": 72,
+      "enabled": true
+    },
+    {
+      "id": "adafruit_blog",
+      "name": "Adafruit Blog",
+      "type": "rss",
+      "category": "maker_open_source",
+      "url": "https://blog.adafruit.com/feed/",
+      "allowed_hosts": ["blog.adafruit.com"],
+      "default_tags": ["embedded", "vendor-blog"],
+      "require_maker_tags": true,
+      "max_items": 5,
+      "window_hours": 72,
+      "enabled": true
+    },
+    {
+      "id": "raspberry_pi_news",
+      "name": "Raspberry Pi News",
+      "type": "rss",
+      "category": "maker_open_source",
+      "url": "https://www.raspberrypi.com/news/feed/",
+      "allowed_hosts": ["raspberrypi.com", "www.raspberrypi.com"],
+      "default_tags": ["embedded", "vendor-blog"],
+      "max_items": 5,
+      "window_hours": 72,
+      "enabled": true
+    },
+    {
+      "id": "sparkfun_news",
+      "name": "SparkFun News",
+      "type": "rss",
+      "category": "maker_open_source",
+      "url": "https://news.sparkfun.com/feeds/news",
+      "allowed_hosts": ["news.sparkfun.com"],
+      "default_tags": ["embedded", "vendor-blog"],
+      "max_items": 5,
+      "window_hours": 72,
+      "enabled": true
+    },
+    {
+      "id": "crowd_supply",
+      "name": "Crowd Supply",
+      "type": "disabled",
+      "category": "new_products_trends",
+      "url": "https://www.crowdsupply.com/",
+      "window_hours": 168,
+      "enabled": false,
+      "disabled_reason": "candidate RSS/feed URLs returned HTTP 404 and the public homepage exposed no RSS/Atom link"
+    },
+    {
+      "id": "kickstarter_technology",
+      "name": "Kickstarter · Technology",
+      "type": "disabled",
+      "category": "new_products_trends",
+      "url": "https://www.kickstarter.com/discover/advanced?category_id=16&sort=newest",
+      "window_hours": 168,
+      "enabled": false,
+      "disabled_reason": "public discovery page returned TLS errors and HTTP 403 challenge responses during validation"
+    },
+    {
+      "id": "instructables",
+      "name": "Instructables",
+      "type": "disabled",
+      "category": "maker_open_source",
+      "url": "https://www.instructables.com/feed/",
+      "window_hours": 168,
+      "enabled": false,
+      "disabled_reason": "candidate feed redirected to an account login page instead of returning RSS/Atom"
+    },
+    {
+      "id": "thingiverse",
+      "name": "Thingiverse",
+      "type": "disabled",
+      "category": "3d_printing",
+      "url": "https://www.thingiverse.com/rss",
+      "window_hours": 168,
+      "enabled": false,
+      "disabled_reason": "candidate RSS URL returned HTTP 404 with an inconsistent XML body; stable API credentials are not configured"
+    },
+    {
       "id": "arxiv_maker",
       "name": "arXiv",
       "type": "disabled",
@@ -218,6 +307,7 @@
     "Reddit RSS exposes publication time and original links but no reliable vote/comment metrics, so heat remains unknown",
     "X coverage uses a public curated snapshot and is not full-platform search",
     "Bilibili, TikTok, WeChat, Douyin and Xiaohongshu were probed but remain explicitly skipped",
+    "Crowd Supply, Kickstarter, Instructables and Thingiverse were probed but remain explicitly skipped",
     "Crowdfunding sources are planned for a later source batch"
   ]
 }

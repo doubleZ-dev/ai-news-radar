@@ -16,6 +16,10 @@ valid healthy result when the upstream feed itself contains entries.
 | Product Hunt | Official Atom feed | Reuses the upstream project's timestamp-safe parser and keeps maker-related products only. |
 | Hugging Face Daily Papers | Public JSON endpoint | Keeps recent maker-adjacent research and preserves upvotes, comments, code, and project links when present. |
 | X · Follow Builders | Public GitHub-generated JSON | Curated X snapshot with original post links and engagement metrics; this is not full-platform X search. |
+| Arduino Blog | Official RSS | Recent embedded projects, tutorials, and product ideas. |
+| Adafruit Blog | Official RSS | Recent electronics, fabrication, and community builds. |
+| Raspberry Pi News | Official RSS | Recent Raspberry Pi projects and ecosystem updates. |
+| SparkFun News | Official Atom | Uses the feed explicitly advertised by the SparkFun news homepage. |
 
 ## Probed but intentionally skipped
 
@@ -33,6 +37,10 @@ valid healthy result when the upstream feed itself contains entries.
 | Douyin | No local TikHub API key | The existing credentialed adapter cannot run, and no stable unauthenticated endpoint is available. |
 | TikTok | No stable public search/feed | No locally authorized API provider is configured. |
 | WeChat Official Accounts | Candidate aggregator returned HTTP 403 | No explicit account/feed allowlist is configured. |
+| Crowd Supply | Candidate feeds returned HTTP 404 | The public homepage exposed no RSS/Atom link. |
+| Kickstarter · Technology | TLS failure and HTTP 403 challenge | No stable unauthenticated discovery path was verified. |
+| Instructables | Candidate feed redirected to login | The response was HTML, not RSS/Atom. |
+| Thingiverse | HTTP 404 with inconsistent XML body | Stable API credentials are not configured. |
 
 The skipped entries remain in `config/maker-sources.json` with
 `enabled: false`. They appear in source health and `info_gaps`, but never
