@@ -64,6 +64,10 @@ python scripts/render_maker_reports.py \
   --output-dir reports/daily
 ```
 
+For an Obsidian archive, pass the vault folder and `--dated-subdir`. The
+renderer then creates a `YYYYMMDD` directory automatically without overwriting
+older dates.
+
 The curated report contains five to eight opportunities. The complete report
 retains every raw source link plus its explicit selection decision. Both are
 local generated artifacts and are ignored by Git by default.

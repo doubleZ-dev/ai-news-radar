@@ -53,7 +53,7 @@
 完成后运行：
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\render_maker_reports.py --raw data\maker-candidates.json --analysis data\maker-analysis.json --output-dir reports\daily
+.\.venv\Scripts\python.exe scripts\render_maker_reports.py --raw data\maker-candidates.json --analysis data\maker-analysis.json --output-dir "C:\Users\zengzhi\iCloudDrive\iCloud~md~obsidian\apple note\每日热点" --dated-subdir
 ```
 
 如果验证失败，修正分析文件；不得绕过验证器或手工伪造日报。

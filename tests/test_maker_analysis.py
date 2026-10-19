@@ -4,7 +4,11 @@ import pytest
 
 from scripts.maker_analysis import AnalysisValidationError, validate_analysis_packet
 from scripts.maker_opportunity import build_daily_digest
-from scripts.render_maker_reports import render_all_discoveries, render_curated
+from scripts.render_maker_reports import (
+    render_all_discoveries,
+    render_curated,
+    report_output_dir,
+)
 
 
 NOW = datetime(2026, 10, 19, 8, tzinfo=timezone.utc)
@@ -113,3 +117,7 @@ def test_reports_keep_chinese_text_and_every_original_link():
     for item in raw["items"]:
         assert item["url"] in complete
 
+
+def test_dated_archive_folder_uses_compact_calendar_date(tmp_path):
+    assert report_output_dir(tmp_path, "2026-10-19", True) == tmp_path / "20261019"
+    assert report_output_dir(tmp_path, "2026-10-19", False) == tmp_path

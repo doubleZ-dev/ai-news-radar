@@ -120,11 +120,21 @@ def write_text(path: Path, content: str) -> None:
     temporary.replace(path)
 
 
+def report_output_dir(base: Path, report_date: str, dated_subdir: bool) -> Path:
+    """Return the archive directory without relying on shell date expansion."""
+    return base / report_date.replace("-", "") if dated_subdir else base
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--raw", required=True, type=Path)
     parser.add_argument("--analysis", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
+    parser.add_argument(
+        "--dated-subdir",
+        action="store_true",
+        help="create a YYYYMMDD folder below output-dir for Obsidian-style archives",
+    )
     args = parser.parse_args()
     raw = json.loads(args.raw.read_text(encoding="utf-8"))
     analysis_raw = json.loads(args.analysis.read_text(encoding="utf-8"))
@@ -136,8 +146,9 @@ def main() -> int:
     report_date = datetime.fromisoformat(
         digest["generated_at"].replace("Z", "+00:00")
     ).date().isoformat()
-    curated_path = args.output_dir / f"{report_date}-每日精选.md"
-    all_path = args.output_dir / f"{report_date}-全部发现.md"
+    output_dir = report_output_dir(args.output_dir, report_date, args.dated_subdir)
+    curated_path = output_dir / f"{report_date}-每日精选.md"
+    all_path = output_dir / f"{report_date}-全部发现.md"
     write_text(curated_path, render_curated(digest, raw.get("source_status", [])))
     write_text(all_path, render_all_discoveries(raw, analysis))
     print(f"Wrote: {curated_path} ({digest['total_items']} selected)")
